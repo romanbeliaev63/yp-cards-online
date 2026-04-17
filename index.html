@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouPianist Cards Online</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a2e;
+    font-family: Georgia, serif;
+    color: #f5f0e8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    padding: 20px 24px 16px;
+    text-align: center;
+    border-bottom: 1px solid #2a2a4e;
+  }
+
+  header h1 {
+    font-size: 1.9rem;
+    color: #c9a96e;
+    letter-spacing: 1px;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: #8888aa;
+    margin-top: 4px;
+  }
+
+  .filters {
+    width: 100%;
+    max-width: 700px;
+    padding: 18px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-group label.group-label {
+    font-size: 0.78rem;
+    color: #c9a96e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-group .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-group label.opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #ccc;
+    cursor: pointer;
+    padding: 5px 10px;
+    border: 1px solid #3a3a5e;
+    border-radius: 6px;
+    transition: border-color 0.2s, color 0.2s;
+    user-select: none;
+  }
+
+  .filter-group label.opt:hover { border-color: #c9a96e; color: #fff; }
+
+  .filter-group input[type=checkbox] {
+    accent-color: #c9a96e;
+    width: 14px; height: 14px;
+  }
+
+  .start-btn {
+    margin: 4px 0 18px;
+    padding: 10px 34px;
+    background: #c9a96e;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 8px;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .start-btn:hover { background: #e0bf80; transform: translateY(-1px); }
+  .start-btn:active { transform: translateY(0); }
+
+  /* MAIN GAME AREA */
+  .game-area {
+    width: 100%;
+    max-width: 500px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #c9a96e;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #2a2a4e;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #c9a96e;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* CARD */
+  .card-scene {
+    width: 340px;
+    height: 220px;
+  }
+
+  .card-face {
+    width: 100%;
+    height: 100%;
+    background: #f5f0e8;
+    border: 2.5px solid #1a2a5e;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+
+
+  /* ANSWER FEEDBACK strip */
+  .answer-strip {
+    width: 100%;
+    max-width: 400px;
+    min-height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+
+  .answer-strip.show { opacity: 1; }
+
+  .answer-strip.correct {
+    background: rgba(42, 142, 74, 0.18);
+    border: 1.5px solid #3aae5a55;
+  }
+
+  .answer-strip.wrong {
+    background: rgba(142, 42, 42, 0.18);
+    border: 1.5px solid #ae3a3a55;
+  }
+
+  .answer-strip .big-emoji {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .answer-strip .answer-text {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #f5f0e8;
+  }
+
+  .answer-strip .correct-note {
+    font-size: 0.88rem;
+    color: #c9a96e;
+  }
+
+  /* SVG staff */
+  .staff-svg {
+    width: 300px;
+    height: 190px;
+  }
+
+  /* NOTE ANSWER BUTTONS */
+  .note-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .note-btn {
+    padding: 10px 0;
+    width: 100px;
+    border: 2px solid #3a3a6e;
+    border-radius: 10px;
+    background: #22224a;
+    color: #f5f0e8;
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    user-select: none;
+  }
+
+  .note-btn:hover:not(:disabled) {
+    background: #2e2e6a;
+    border-color: #c9a96e;
+    transform: translateY(-1px);
+  }
+
+  .note-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .note-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .note-btn.correct-answer {
+    background: #1e5c2e;
+    border-color: #3aae5a;
+    color: #fff;
+  }
+
+  .note-btn.wrong-answer {
+    background: #5c1e1e;
+    border-color: #ae3a3a;
+    color: #fff;
+  }
+
+  /* next button */
+  .next-btn {
+    padding: 10px 40px;
+    background: #c9a96e;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 8px;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: none;
+  }
+
+  .next-btn.visible { display: block; }
+  .next-btn:hover { background: #e0bf80; transform: translateY(-1px); }
+
+  /* RESULT SCREEN */
+  .result-screen {
+    width: 100%;
+    max-width: 420px;
+    background: #f5f0e8;
+    border: 2.5px solid #1a2a5e;
+    border-radius: 16px;
+    padding: 36px 32px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 0 16px;
+  }
+
+  .result-screen h2 { font-size: 1.8rem; color: #1a2a5e; }
+
+  .result-percent {
+    font-size: 3.5rem;
+    color: #c9a96e;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .result-details {
+    font-size: 0.95rem;
+    color: #3a4a7e;
+    line-height: 1.6;
+  }
+
+  .result-screen .start-btn { margin-top: 8px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>YouPianist Cards Online</h1>
+  <p>Тренажёр нотных карточек для фортепиано</p>
+</header>
+
+<div class="filters" id="filters">
+  <div class="filter-group">
+    <label class="group-label">Октава</label>
+    <div class="options">
+      <label class="opt"><input type="checkbox" id="oct-small" checked> Малая</label>
+      <label class="opt"><input type="checkbox" id="oct-1" checked> Первая</label>
+      <label class="opt"><input type="checkbox" id="oct-2"> Вторая</label>
+      <label class="opt"><input type="checkbox" id="oct-3"> Третья</label>
+    </div>
+  </div>
+  <div class="filter-group">
+    <label class="group-label">Знаки</label>
+    <div class="options">
+      <label class="opt"><input type="checkbox" id="acc-natural" checked> Натуральные</label>
+      <label class="opt"><input type="checkbox" id="acc-sharp"> Диезы</label>
+      <label class="opt"><input type="checkbox" id="acc-flat"> Бемоли</label>
+    </div>
+  </div>
+  <button class="start-btn" id="start-btn" onclick="startGame()">Начать</button>
+</div>
+
+<div class="game-area hidden" id="game-area">
+  <div class="progress-bar-wrap">
+    <div class="progress-text">
+      <span id="progress-label">1 / 32</span>
+      <span id="score-label">✓ 0</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="card-scene">
+    <div class="card-face" id="card-face">
+      <svg class="staff-svg" id="staff-svg" viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="answer-strip" id="answer-strip">
+    <span class="big-emoji" id="answer-emoji"></span>
+    <span class="answer-text" id="answer-text"></span>
+    <span class="correct-note" id="answer-correct-note"></span>
+  </div>
+
+  <div class="note-btns" id="note-btns">
+    <!-- filled by JS -->
+  </div>
+
+  <button class="next-btn" id="next-btn" onclick="nextCard()">Дальше →</button>
+</div>
+
+<div class="result-screen" id="result-screen">
+  <h2>Результат</h2>
+  <div class="result-percent" id="result-percent">0%</div>
+  <div class="result-details" id="result-details"></div>
+  <button class="start-btn" onclick="backToFilters()">Ещё раз</button>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTE SYSTEM
+//
+// Treble clef staff lines (bottom to top):
+//   Line 1: E4  (ми первой)
+//   Line 2: G4  (соль первой)
+//   Line 3: B4  (си первой)   ← middle line
+//   Line 4: D5  (ре второй)
+//   Line 5: F5  (фа второй)
+//
+// We define "staffStep" as the diatonic step number where:
+//   E4 = 0 (bottom line)
+//   F4 = 1 (first space from bottom)
+//   G4 = 2 (second line)
+//   A4 = 3
+//   B4 = 4 (third line = middle)
+//   C5 = 5
+//   D5 = 6 (fourth line)
+//   E5 = 7
+//   F5 = 8 (top line)
+//
+// C4 (до первой) = E4 - 2 steps = staffStep -2  → first ledger line below
+// C3 (до малой)  = staffStep -9
+// ─────────────────────────────────────────────────────────────────────────────
+
+// staffStep relative to E4 (bottom staff line = 0)
+// Each octave = 7 diatonic steps
+// Note order within octave: до=0, ре=1, ми=2, фа=3, соль=4, ля=5, си=6
+// E is index 2 in that order
+
+// Absolute staffStep for each note:
+// C4 = -2 (two below E4)
+// D4 = -1
+// E4 = 0 (line 1)
+// F4 = 1
+// G4 = 2 (line 2)
+// A4 = 3
+// B4 = 4 (line 3 = middle)
+// C5 = 5
+// D5 = 6 (line 4)
+// E5 = 7
+// F5 = 8 (line 5)
+// G5 = 9
+// ...
+
+// Octaves and their C (до) staffStep:
+// Малая (C3):   C3 staffStep = -2 - 7 = -9
+// Первая (C4):  C4 staffStep = -2
+// Вторая (C5):  C5 staffStep = 5
+// Третья (C6):  C6 staffStep = 12
+
+const OCTAVE_C_STEP = {
+  'small': -9,  // C3
+  '1':     -2,  // C4
+  '2':      5,  // C5
+  '3':     12,  // C6
+};
+
+const OCTAVE_LABELS = {
+  'small': 'малая октава',
+  '1':     'первая октава',
+  '2':     'вторая октава',
+  '3':     'третья октава',
+};
+
+// Note names and their diatonic offset from C within octave
+const NATURALS = [
+  { name: 'до',   idx: 0 },
+  { name: 'ре',   idx: 1 },
+  { name: 'ми',   idx: 2 },
+  { name: 'фа',   idx: 3 },
+  { name: 'соль', idx: 4 },
+  { name: 'ля',   idx: 5 },
+  { name: 'си',   idx: 6 },
+];
+
+// All 7 base names for answer buttons
+const NOTE_NAMES_7 = ['до', 'ре', 'ми', 'фа', 'соль', 'ля', 'си'];
+
+function buildNotes() {
+  const notes = [];
+  for (const [octId, cStep] of Object.entries(OCTAVE_C_STEP)) {
+    for (const n of NATURALS) {
+      const step = cStep + n.idx;
+      // natural
+      notes.push({ oct: octId, octLabel: OCTAVE_LABELS[octId], baseName: n.name, name: n.name, acc: 'natural', accLabel: '', step });
+      // sharp (exclude ми♯, си♯)
+      if (n.idx !== 2 && n.idx !== 6) {
+        notes.push({ oct: octId, octLabel: OCTAVE_LABELS[octId], baseName: n.name, name: n.name + '♯', acc: 'sharp', accLabel: 'диез', step });
+      }
+      // flat (exclude до♭, фа♭)
+      if (n.idx !== 0 && n.idx !== 3) {
+        notes.push({ oct: octId, octLabel: OCTAVE_LABELS[octId], baseName: n.name, name: n.name + '♭', acc: 'flat', accLabel: 'бемоль', step });
+      }
+    }
+  }
+  return notes;
+}
+
+const ALL_NOTES = buildNotes();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SVG DRAWING
+//
+// Staff: 5 lines, spacing = 12px
+// Bottom line (E4, staffStep=0) at y = BOTTOM_LINE_Y
+// Each staffStep up = -6px (half space = 6px, full space = 12px)
+//
+// SVG viewBox: 0 0 300 190
+// We want staff lines in the middle-ish area.
+// Bottom line y = 130, top line y = 130 - 4*12 = 82
+// This leaves room above for high notes and below for ledger lines.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BOTTOM_LINE_Y = 128;  // y of bottom staff line (E4, staffStep=0)
+const HALF_SPACE    = 6;    // px per diatonic step
+
+function stepToY(step) {
+  // step 0 = E4 = BOTTOM_LINE_Y
+  // each step up = -HALF_SPACE
+  return BOTTOM_LINE_Y - step * HALF_SPACE;
+}
+
+// Staff lines are at staffSteps: 0, 2, 4, 6, 8 (E4, G4, B4, D5, F5)
+const STAFF_LINE_STEPS = [0, 2, 4, 6, 8];
+
+function drawStaff(svg, note) {
+  svg.innerHTML = '';
+  const color = '#1a2a5e';
+  const noteX = 200;
+
+  // ── 5 staff lines ──
+  for (const s of STAFF_LINE_STEPS) {
+    const y = stepToY(s);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', '30'); line.setAttribute('x2', '280');
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('stroke', color); line.setAttribute('stroke-width', '1.2');
+    svg.appendChild(line);
+  }
+
+  // ── Treble clef ──
+  // Positioned so its curl sits on G4 (step=2, y=BOTTOM_LINE_Y - 12)
+  const clefY = stepToY(2) + 42; // anchor point for the glyph
+  const clef = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  clef.setAttribute('x', '28');
+  clef.setAttribute('y', clefY);
+  clef.setAttribute('font-size', '80');
+  clef.setAttribute('fill', color);
+  clef.setAttribute('font-family', 'Georgia, serif');
+  clef.textContent = '𝄞';
+  svg.appendChild(clef);
+
+  // ── Ledger lines ──
+  const noteStep = note.step;
+  const noteY = stepToY(noteStep);
+
+  const addLedger = (st) => {
+    const ly = stepToY(st);
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', noteX - 14); l.setAttribute('x2', noteX + 14);
+    l.setAttribute('y1', ly); l.setAttribute('y2', ly);
+    l.setAttribute('stroke', color); l.setAttribute('stroke-width', '1.5');
+    svg.appendChild(l);
+  };
+
+  // Below staff: ledger lines at steps -2, -4, -6, ... (even steps below 0)
+  if (noteStep <= -2) {
+    for (let s = -2; s >= noteStep; s -= 2) addLedger(s);
+  }
+
+  // Above staff: ledger lines at steps 10, 12, 14, ... (even steps above 8)
+  if (noteStep >= 10) {
+    for (let s = 10; s <= noteStep; s += 2) addLedger(s);
+  }
+
+  // Special: C4 sits ON a ledger line at step -2 (even), already handled above.
+  // But if note is on an odd step just below staff (step = -1), no ledger needed.
+
+  // ── Accidental ──
+  const accX = noteX - 22;
+  if (note.acc === 'sharp' || note.acc === 'flat') {
+    const acc = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    acc.setAttribute('x', accX);
+    acc.setAttribute('y', noteY + 5);
+    acc.setAttribute('font-size', '18');
+    acc.setAttribute('fill', color);
+    acc.setAttribute('font-family', 'Georgia, serif');
+    acc.textContent = note.acc === 'sharp' ? '♯' : '♭';
+    svg.appendChild(acc);
+  }
+
+  // ── Note head ──
+  const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+  ellipse.setAttribute('cx', noteX);
+  ellipse.setAttribute('cy', noteY);
+  ellipse.setAttribute('rx', '8');
+  ellipse.setAttribute('ry', '5.5');
+  ellipse.setAttribute('fill', color);
+  ellipse.setAttribute('transform', `rotate(-15, ${noteX}, ${noteY})`);
+  svg.appendChild(ellipse);
+
+  // ── Stem ──
+  // Convention: notes below middle line (B4 = step 4) → stem up (right side)
+  //             notes above middle line → stem down (left side)
+  //             on middle line: stem up
+  const stemUp = noteStep <= 4;
+  const stemX  = stemUp ? noteX + 7 : noteX - 7;
+  const stemY1 = noteY + (stemUp ? -5 : 5);
+  const stemY2 = noteY + (stemUp ? -32 : 32);
+
+  const stem = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  stem.setAttribute('x1', stemX); stem.setAttribute('x2', stemX);
+  stem.setAttribute('y1', stemY1); stem.setAttribute('y2', stemY2);
+  stem.setAttribute('stroke', color); stem.setAttribute('stroke-width', '1.5');
+  svg.appendChild(stem);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let deck = [];
+let currentIndex = 0;
+let correctCount = 0;
+let answered = false;
+
+function getFilteredNotes() {
+  const octs = [];
+  if (document.getElementById('oct-small').checked) octs.push('small');
+  if (document.getElementById('oct-1').checked)     octs.push('1');
+  if (document.getElementById('oct-2').checked)     octs.push('2');
+  if (document.getElementById('oct-3').checked)     octs.push('3');
+
+  const accs = [];
+  if (document.getElementById('acc-natural').checked) accs.push('natural');
+  if (document.getElementById('acc-sharp').checked)   accs.push('sharp');
+  if (document.getElementById('acc-flat').checked)    accs.push('flat');
+
+  if (octs.length === 0 || accs.length === 0) return [];
+  return ALL_NOTES.filter(n => octs.includes(n.oct) && accs.includes(n.acc));
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  const notes = getFilteredNotes();
+  if (notes.length === 0) {
+    alert('Выберите хотя бы одну октаву и один тип знаков!');
+    return;
+  }
+  deck = shuffle(notes);
+  currentIndex = 0;
+  correctCount = 0;
+  answered = false;
+
+  document.getElementById('filters').classList.add('hidden');
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('game-area').classList.remove('hidden');
+
+  buildAnswerButtons();
+  showCard();
+}
+
+function buildAnswerButtons() {
+  const container = document.getElementById('note-btns');
+  container.innerHTML = '';
+  for (const name of NOTE_NAMES_7) {
+    const btn = document.createElement('button');
+    btn.className = 'note-btn';
+    btn.textContent = name;
+    btn.dataset.name = name;
+    btn.onclick = () => handleAnswer(name);
+    container.appendChild(btn);
+  }
+}
+
+function showCard() {
+  const note = deck[currentIndex];
+  answered = false;
+
+  // reset card appearance
+  const cardFace = document.getElementById('card-face');
+  cardFace.classList.remove('correct', 'wrong');
+
+  // reset strip
+  const strip = document.getElementById('answer-strip');
+  strip.className = 'answer-strip';
+
+  // reset buttons
+  document.querySelectorAll('.note-btn').forEach(btn => {
+    btn.classList.remove('correct-answer', 'wrong-answer');
+    btn.disabled = false;
+  });
+
+  // hide next button
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.classList.remove('visible');
+
+  // draw note
+  const svg = document.getElementById('staff-svg');
+  drawStaff(svg, note);
+
+  // update progress
+  const total = deck.length;
+  document.getElementById('progress-label').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('score-label').textContent = `✓ ${correctCount}`;
+  document.getElementById('progress-fill').style.width = `${(currentIndex / total) * 100}%`;
+}
+
+function handleAnswer(chosen) {
+  if (answered) return;
+  answered = true;
+
+  const note = deck[currentIndex];
+  const isCorrect = chosen === note.baseName;
+
+  if (isCorrect) correctCount++;
+
+  // Highlight buttons
+  document.querySelectorAll('.note-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.name === note.baseName) {
+      btn.classList.add('correct-answer');
+    } else if (btn.dataset.name === chosen && !isCorrect) {
+      btn.classList.add('wrong-answer');
+    }
+  });
+
+  // Strip feedback
+  const strip  = document.getElementById('answer-strip');
+
+  if (isCorrect) {
+    strip.className = 'answer-strip show correct';
+    document.getElementById('answer-emoji').textContent = '✓';
+    document.getElementById('answer-text').textContent = note.name + ' — ' + note.octLabel;
+    document.getElementById('answer-correct-note').textContent = '';
+  } else {
+    strip.className = 'answer-strip show wrong';
+    document.getElementById('answer-emoji').textContent = '✗';
+    document.getElementById('answer-text').textContent = 'Неверно';
+    document.getElementById('answer-correct-note').textContent = 'Правильно: ' + note.name + ' (' + note.octLabel + ')';
+  }
+
+  // Update score label immediately
+  document.getElementById('score-label').textContent = `✓ ${correctCount}`;
+
+  // Show next button
+  setTimeout(() => {
+    document.getElementById('next-btn').classList.add('visible');
+  }, 300);
+}
+
+function nextCard() {
+  currentIndex++;
+  if (currentIndex >= deck.length) {
+    showResult();
+    return;
+  }
+  showCard();
+}
+
+function showResult() {
+  document.getElementById('game-area').classList.add('hidden');
+  const rs = document.getElementById('result-screen');
+  rs.style.display = 'flex';
+
+  const total = deck.length;
+  const pct = Math.round((correctCount / total) * 100);
+  document.getElementById('result-percent').textContent = pct + '%';
+
+  let emoji = pct >= 90 ? '🎹 Отлично!' : pct >= 60 ? '👍 Хороший результат!' : '💪 Продолжай тренироваться!';
+  document.getElementById('result-details').innerHTML =
+    `Правильно: <strong>${correctCount}</strong> из <strong>${total}</strong><br>${emoji}`;
+}
+
+function backToFilters() {
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('game-area').classList.add('hidden');
+  document.getElementById('filters').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
