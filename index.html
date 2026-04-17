@@ -561,14 +561,14 @@ function drawStaff(svg, note) {
   // But if note is on an odd step just below staff (step = -1), no ledger needed.
 
   // ── Accidental ──
-  const accX = noteX - 22;
   if (note.acc === 'sharp' || note.acc === 'flat') {
     const acc = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    acc.setAttribute('x', accX);
+    acc.setAttribute('x', noteX - 10);
     acc.setAttribute('y', noteY + 5);
-    acc.setAttribute('font-size', '18');
+    acc.setAttribute('font-size', '13');
     acc.setAttribute('fill', color);
     acc.setAttribute('font-family', 'Georgia, serif');
+    acc.setAttribute('text-anchor', 'end');
     acc.textContent = note.acc === 'sharp' ? '♯' : '♭';
     svg.appendChild(acc);
   }
